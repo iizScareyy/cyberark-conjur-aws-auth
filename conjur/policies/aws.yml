@@ -1,0 +1,25 @@
+- !policy
+  id: aws
+  body:
+
+    - !host
+      id: ec2-app
+
+    - !group
+      id: consumers
+
+    - &variables
+      - !variable
+        id: database/username
+
+      - !variable
+        id: database/password
+
+    - !grant
+      role: !group consumers
+      member: !host ec2-app
+
+    - !permit
+      role: !group consumers
+      privileges: [ read, execute ]
+      resources: *variables
