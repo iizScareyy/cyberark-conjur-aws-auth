@@ -1,28 +1,77 @@
-# Secrets
-conjur/conjur-quickstart/data_key
-conjur/conjur-quickstart/admin_data
-.env
-
+#############################################
 # Python
-__pycache__/
-*.pyc
+#############################################
+
 .venv/
 venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
 
+#############################################
+# Environment Files
+#############################################
+
+.env
+.env.*
+!.env.example
+
+#############################################
 # Terraform
+#############################################
+
 .terraform/
 *.tfstate
 *.tfstate.*
-terraform.tfvars
+terraform/terraform.tfvars
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
 
-# OS
-.DS_Store
-Thumbs.db
+#############################################
+# Conjur Generated Files
+#############################################
 
-# IDE
+conjur/conjur-quickstart/.env
+conjur/conjur-quickstart/admin_data
+conjur/conjur-quickstart/data_key
+
+#############################################
+# VS Code / JetBrains
+#############################################
+
 .vscode/
 .idea/
 
+#############################################
+# macOS / Windows
+#############################################
+
+.DS_Store
+Thumbs.db
+
+#############################################
 # Logs
+#############################################
+
 *.log
-conjur/conjur-quickstart/
+
+#############################################
+# Python Test Cache
+#############################################
+
+.pytest_cache/
+.coverage
+htmlcov/
+
+#############################################
+# Misc
+#############################################
+
+*.swp
+*.swo

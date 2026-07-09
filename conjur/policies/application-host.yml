@@ -1,0 +1,12 @@
+- !host
+  id: python-app
+
+- !permit
+  role: !host python-app
+  privileges: [ read, execute ]
+  resource: !variable aws/database/username
+
+- !permit
+  role: !host python-app
+  privileges: [ read, execute ]
+  resource: !variable aws/database/password
