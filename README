@@ -1,78 +1,122 @@
 # 🔐 Cloud-Native Secrets Management with CyberArk Conjur, Terraform & AWS
 
-A production-inspired demonstration of centralized secrets management using **CyberArk Conjur OSS**, **Terraform**, **AWS**, **Docker**, and **Python**.
+![Terraform](https://img.shields.io/badge/Terraform-1.x-623CE4?logo=terraform)
+![AWS](https://img.shields.io/badge/AWS-EC2-FF9900?logo=amazonaws)
+![CyberArk](https://img.shields.io/badge/CyberArk-Conjur-blue)
+![Python](https://img.shields.io/badge/Python-3.x-3776AB?logo=python)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-This project provisions cloud infrastructure using Terraform, deploys a CyberArk Conjur environment, and demonstrates how an application can securely retrieve secrets at runtime through the Conjur REST API using a **least-privilege application identity**, eliminating the need for hardcoded credentials.
+A production-inspired secrets management solution demonstrating how applications can securely retrieve credentials at runtime using **CyberArk Conjur OSS**, **Terraform**, **AWS**, **Docker**, and **Python**, eliminating hardcoded secrets and implementing a least-privilege authentication model.
 
 ---
 
-## Acknowledgements
+# 📖 Overview
 
-The Docker-based Conjur environment is based on the official CyberArk Conjur OSS Quickstart and has been adapted for this project. The infrastructure provisioning, application integration, policy design, and end-to-end secrets management workflow were implemented as part of this project.
+Applications frequently store database passwords, API keys, and service credentials inside source code, configuration files, or environment variables. This creates several security and operational challenges:
+
+- Secrets can be accidentally committed to source control.
+- Password rotation requires application changes.
+- Applications often receive excessive permissions.
+- Secret management becomes decentralized and difficult to audit.
+
+This project demonstrates a centralized approach using **CyberArk Conjur OSS**.
+
+Infrastructure is provisioned using **Terraform**, while a Python application authenticates to Conjur using a dedicated **least-privilege Host Identity** and retrieves secrets securely through the **Conjur REST API**.
 
 ---
 
+# ✨ Features
 
-## 📌 Problem Statement
-
-Hardcoding credentials in application source code, configuration files, or environment variables introduces significant security risks:
-
-- Credentials can be accidentally committed to source control.
-- Password rotation requires application configuration changes.
-- Every application must manage secrets independently.
-- Overprivileged service accounts increase the attack surface.
-
-This project demonstrates how centralized secrets management solves these problems by allowing applications to authenticate to CyberArk Conjur and retrieve secrets dynamically at runtime.
+- ✅ Modular Terraform Infrastructure
+- ✅ AWS EC2 Provisioning
+- ✅ Dockerized CyberArk Conjur OSS
+- ✅ Secure REST API Authentication
+- ✅ Least-Privilege Application Identity
+- ✅ Runtime Secret Retrieval
+- ✅ Centralized Secret Rotation
+- ✅ Infrastructure as Code
+- ✅ Python Integration
+- ✅ Security-focused Architecture
 
 ---
 
 ## 🏗️ Architecture
 
+```mermaid
+flowchart LR
+
+    subgraph AWS["AWS Infrastructure (Terraform)"]
+        TF["Terraform"]
+        EC2["EC2 Instance"]
+        IAM["IAM Role"]
+        VPC["VPC & Security Groups"]
+
+        TF --> VPC
+        TF --> IAM
+        TF --> EC2
+    end
+
+    subgraph APP["Application"]
+        PY["Python Client"]
+    end
+
+    subgraph CONJUR["CyberArk Conjur OSS"]
+        AUTH["Host Authentication"]
+        POLICY["Authorization Policies"]
+        SECRET["Secrets Store"]
+    end
+
+    EC2 --> PY
+
+    PY -->|1. Authenticate using Host Identity| AUTH
+    AUTH -->|2. Access Token| PY
+
+    PY -->|3. Request Database Credentials| SECRET
+    POLICY --> SECRET
+
+    SECRET -->|4. Username & Password| PY
+
+    PY -->|Uses Credentials Securely| DB[(Database)]
 ```
-                     AWS Cloud
 
-        ┌─────────────────────────────┐
-        │ Terraform Infrastructure    │
-        └──────────────┬──────────────┘
-                       │
-                Provision Resources
-                       │
-                       ▼
-               EC2 Instance (Python App)
-                       │
-                       │ HTTPS
-                       ▼
-        ┌─────────────────────────────┐
-        │ CyberArk Conjur OSS         │
-        │ (Docker Environment)        │
-        └──────────────┬──────────────┘
-                       │
-                Authenticate Host
-                       │
-                Short-lived Token
-                       │
-                       ▼
-              Retrieve Database Secrets
+### Architecture Overview
+
+1. **Terraform** provisions the AWS infrastructure, including networking, IAM resources, and an EC2 instance.
+
+2. The **Python application** runs on the EC2 instance and authenticates to **CyberArk Conjur** using a dedicated Host Identity.
+
+3. Upon successful authentication, Conjur issues a short-lived access token.
+
+4. The application requests the required database credentials from Conjur.
+
+5. Conjur evaluates authorization policies and returns only the secrets the application is permitted to access.
+
+6. The application uses the retrieved credentials at runtime without storing them in source code or configuration files.
+
+
+## 🔄 Authentication Flow
+
+```mermaid
+sequenceDiagram
+
+    participant App as Python Application
+    participant Conjur as CyberArk Conjur
+
+    App->>Conjur: Authenticate (Host Identity + API Key)
+    Conjur-->>App: Access Token
+
+    App->>Conjur: Request Database Username
+    Conjur-->>App: Username
+
+    App->>Conjur: Request Database Password
+    Conjur-->>App: Password
+
+    App->>App: Connect using retrieved credentials
 ```
 
----
 
-## 🚀 Features
-
-- Modular Terraform Infrastructure
-- AWS Resource Provisioning
-- CyberArk Conjur OSS Deployment
-- Python REST API Integration
-- Least-Privilege Application Identity
-- Dynamic Secret Retrieval
-- Centralized Secret Rotation
-- Dockerized Conjur Environment
-- Infrastructure as Code
-- Security-focused Design
-
----
-
-## 📂 Repository Structure
+# 📂 Repository Structure
 
 ```
 cyberark-conjur-aws-auth/
@@ -87,9 +131,9 @@ cyberark-conjur-aws-auth/
 ├── terraform/
 │   ├── modules/
 │   ├── main.tf
-│   ├── providers.tf
-│   ├── outputs.tf
 │   ├── variables.tf
+│   ├── outputs.tf
+│   ├── providers.tf
 │   ├── versions.tf
 │   └── terraform.tfvars.example
 │
@@ -98,101 +142,78 @@ cyberark-conjur-aws-auth/
 │   └── policies/
 │
 ├── docs/
+│   └── screenshots/
 │
 ├── README.md
-└── LICENSE
+├── LICENSE
+└── .gitignore
 ```
 
 ---
 
-## 🔄 Workflow
+# ⚙️ Technologies Used
 
-1. Provision AWS infrastructure using Terraform.
-2. Start CyberArk Conjur using Docker Compose.
-3. Load Conjur policies.
-4. Create a least-privilege application host.
-5. Store application secrets in Conjur.
-6. Authenticate the Python application.
-7. Receive a short-lived access token.
-8. Retrieve secrets securely through the Conjur REST API.
-9. Use the retrieved credentials without storing them in application code.
+## Cloud
 
----
-
-## 🔐 Security Highlights
-
-- No hardcoded database credentials
-- Dedicated application identity
-- Least-privilege authorization model
-- Centralized secret storage
-- Runtime secret retrieval
-- Secret rotation without code changes
-
----
-
-## 🔁 Secret Rotation Demonstration
-
-The project demonstrates centralized password rotation.
-
-1. Update the password stored in Conjur.
-
-```
-conjur variable set -i aws/database/password -v NewPassword123
-```
-
-2. Restart the application.
-
-3. The application automatically retrieves the updated password without requiring any code or configuration changes.
-
----
-
-## ⚙️ Technologies Used
-
-### Cloud
-
-- AWS EC2
+- Amazon EC2
+- Amazon VPC
 - AWS IAM
-- AWS VPC
-- AWS Systems Manager
+- AWS Systems Manager (SSM)
 
-### Infrastructure
+## Infrastructure
 
 - Terraform
 - Docker
 - Docker Compose
 
-### Security
+## Secrets Management
 
 - CyberArk Conjur OSS
+- Conjur Policies
 - REST API Authentication
-- Least Privilege
-- Secrets Management
 
-### Development
+## Development
 
 - Python
 - Requests
 
 ---
 
-## ▶️ Running the Project
+# 🚀 Getting Started
 
-### 1. Clone the repository
+## Prerequisites
+
+- AWS Account
+- Terraform
+- Docker Desktop
+- Python 3.x
+- Git
+
+---
+
+## 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/iizScareyy/cyberark-conjur-aws-auth.git
+
+cd cyberark-conjur-aws-auth
 ```
 
-### 2. Provision AWS infrastructure
+---
+
+## 2. Provision AWS Infrastructure
 
 ```bash
 cd terraform
 
 terraform init
+
 terraform apply
 ```
 
-### 3. Start Conjur
+---
+
+## 3. Start CyberArk Conjur
 
 ```bash
 cd ../conjur/conjur-quickstart
@@ -200,9 +221,11 @@ cd ../conjur/conjur-quickstart
 docker compose up -d
 ```
 
-### 4. Configure the Python application
+---
 
-Copy:
+## 4. Configure the Python Application
+
+Copy
 
 ```
 app/.env.example
@@ -214,47 +237,138 @@ to
 app/.env
 ```
 
-and update the required values.
+Configure:
 
-### 5. Run the application
+- Conjur URL
+- Account
+- Host Identity
+- Host API Key
+
+---
+
+## 5. Install Dependencies
 
 ```bash
 cd app
 
 pip install -r requirements.txt
-
-python main.py
 ```
 
 ---
 
+## 6. Run the Application
 
-## 🚧 Future Improvements
+```bash
+python main.py
+```
 
-- Conjur Enterprise deployment
-- Workload identity instead of host API key bootstrap
-- Automated CI/CD deployment
-- Kubernetes integration
-- Dynamic database credential generation
-- Secret versioning and auditing
+Example Output
+
+```
+==========================================
+ CyberArk Conjur Secret Retrieval Demo
+==========================================
+
+✔ Authentication successful
+
+✔ Database credentials retrieved
+
+Database Username : postgres
+Database Password : ********
+
+==========================================
+```
 
 ---
 
-## 📚 Learning Outcomes
+# 🔁 Secret Rotation Demonstration
 
-This project demonstrates practical implementation of:
+One of the key advantages of centralized secrets management is transparent credential rotation.
+
+Rotate the password inside Conjur:
+
+```bash
+conjur variable set \
+-i aws/database/password \
+-v NewSecurePassword123
+```
+
+Run the application again.
+
+The application automatically retrieves the updated password without requiring:
+
+- Code changes
+- Redeployment
+- Configuration updates
+
+---
+
+# 🔒 Security Highlights
+
+- No hardcoded database credentials
+- Dedicated Host Identity for application authentication
+- Least-Privilege authorization model
+- Runtime secret retrieval
+- Centralized secret management
+- Secret rotation without application changes
+
+---
+
+# 🧠 Design Decisions
+
+### Why Terraform?
+
+Infrastructure is provisioned using reusable Terraform modules to ensure consistent and repeatable deployments.
+
+### Why CyberArk Conjur?
+
+Conjur provides centralized secrets management, policy-based authorization, and runtime secret retrieval for applications.
+
+### Why a Dedicated Host Identity?
+
+Rather than authenticating as an administrator, the application authenticates using a dedicated Host Identity with permission to access only the required secrets, following the Principle of Least Privilege.
+
+### Why REST API Integration?
+
+The Python application interacts directly with the Conjur REST API instead of relying on the CLI, making the integration closer to how production applications communicate with secrets management platforms.
+
+---
+
+
+# 🚧 Future Improvements
+
+- Deploy Conjur on Kubernetes
+- Automate deployment using CI/CD
+- Integrate with enterprise identity providers
+- Enable TLS certificate automation
+- Replace demo host API key bootstrap with a production-grade workload identity approach
+- Add monitoring and audit dashboards
+
+---
+
+# 📚 Learning Outcomes
+
+This project demonstrates practical experience with:
 
 - Infrastructure as Code
-- Cloud provisioning
-- Secrets management
-- REST API integration
-- Secure application authentication
-- Least-privilege authorization
-- Docker-based service deployment
-- Python security integration
+- AWS Infrastructure Provisioning
+- Secrets Management
+- CyberArk Conjur
+- REST API Integration
+- Docker
+- Terraform
+- Python
+- Least-Privilege Security Design
+- Cloud Security Best Practices
 
 ---
 
-## 📄 License
+# 🙏 Acknowledgements
+
+The Docker-based Conjur environment is based on the official **CyberArk Conjur OSS Quickstart** and has been adapted for this project. The Terraform infrastructure, policy design, Python integration, authentication flow, and end-to-end secrets management workflow were implemented as part of this project.
+
+---
+
+# 📄 License
 
 This project is licensed under the MIT License.
