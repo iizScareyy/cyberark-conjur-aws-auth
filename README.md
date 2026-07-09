@@ -46,8 +46,6 @@ The project follows security best practices by implementing:
 
 # 🏗️ Architecture
 
-# 🏗️ Architecture
-
 <p align="center">
   <img src="docs/architecture.png" alt="Cloud-Native Secrets Management Architecture" width="100%">
 </p>
